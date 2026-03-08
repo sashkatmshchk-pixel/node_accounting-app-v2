@@ -87,6 +87,16 @@ function createServer() {
 
     users.splice(userIndex, 1);
 
+    for (
+      let expenseIndex = expenses.length - 1;
+      expenseIndex >= 0;
+      expenseIndex -= 1
+    ) {
+      if (expenses[expenseIndex].userId === userIdFromParams) {
+        expenses.splice(expenseIndex, 1);
+      }
+    }
+
     return res.sendStatus(204);
   });
 
@@ -278,7 +288,7 @@ function createServer() {
     return res.json(expense);
   });
 
-  app.patch('/expenses/:id', (req, res) => {
+  const updateExpenseById = (req, res) => {
     const expenseIdFromParams = Number(req.params.id);
     const expense = expenses.find(
       (candidateExpense) => candidateExpense.id === expenseIdFromParams,
@@ -347,10 +357,23 @@ function createServer() {
       }
     }
 
-    Object.assign(expense, req.body);
+    const expensePatch = { ...req.body };
+
+    if (Object.prototype.hasOwnProperty.call(expensePatch, 'title')) {
+      expensePatch.title = expensePatch.title.trim();
+    }
+
+    if (Object.prototype.hasOwnProperty.call(expensePatch, 'category')) {
+      expensePatch.category = expensePatch.category.trim();
+    }
+
+    Object.assign(expense, expensePatch);
 
     return res.json(expense);
-  });
+  };
+
+  app.patch('/expenses/:id', updateExpenseById);
+  app.put('/expenses/:id', updateExpenseById);
 
   app.delete('/expenses/:id', (req, res) => {
     const expenseIdFromParams = Number(req.params.id);
